@@ -88,14 +88,14 @@ def init2db(file_save_path):
             new_list_1.append(d)
     print('去重排序后总共', str(len(new_list_1)))
     # 图表展示
-    json2charts(new_list_1)
+    json2charts(new_list_1, file_save_path)
     save2json(file_save_path, new_list_1)
     pass
 
 # 图形化
 
 
-def json2charts(all_list):
+def json2charts(all_list, file_save_path):
     bar = Bar()
     # 重新处理echarts需要的数据
     for item in all_list:
@@ -105,7 +105,8 @@ def json2charts(all_list):
         obj['value'] = item['num']
         db.append(obj)
         bar.add_yaxis(item['type'], db)
-    bar.add_xaxis(["2020-05-19"])
+    nowtime = time.strftime("%Y-%m-%d")
+    bar.add_xaxis([nowtime])
     bar.set_series_opts(
         label_opts=opts.LabelOpts(is_show=False),
         # label_opts=opts.LabelOpts(formatter=JsCode(
@@ -116,12 +117,12 @@ def json2charts(all_list):
             "function(x){return '平台：'+ x.seriesName+'<br/>'+'事件：'+x.name+'<br/>'+'阅读量：'+ parseInt(x.value/10000) + '万' }"
         ))
     )
-    bar.render()
+    bar.render(file_save_path+'/index.html')
 
 
 if __name__ == "__main__":
-    # charts()
-    init2db('C:/Users/Administrator/Desktop/python study/baidu+sina+douy+hot')
+    # 保存位置自定
+    init2db('C:/Users/Administrator/Desktop/BaiduAndSinaHotSearch2pyecharts')
     # while True:
     #     time.sleep(60)
     #     init2db('C:/Users/Administrator/Desktop/python study/baidu+sina+douy+hot')
