@@ -43,7 +43,7 @@ def baidu2hot(url):
     html = etree.HTML(b)
     hotsearch = html.xpath('//textarea[@id="hotsearch_data"]/text()')
     big_list = []
-    host = 'https://www.baidu.com/s?tn=news&wd='
+    host = 'http://www.baidu.com/s?tn=news&wd='
     for item in hotsearch:
         josondb = json.loads(item)
         for items in josondb['hotsearch']:
@@ -53,8 +53,35 @@ def baidu2hot(url):
             obj['num'] = int(items['heat_score'])
             obj['type'] = '百度热搜'
             obj['strnum'] = str(int(obj['num']/10000))+'万'
+            obj['htmls'] = getnewdetails(host + items['pure_title'])
             big_list.append(obj)
     return big_list
+
+
+# 获取新闻详情数据
+def getnewdetails(url):
+    t = requests.get(url=url, headers={
+        "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
+        "Cookie": "BAIDUID=B7F548F09EEC3FB817FEE54D9E4FB734:FG=1; BD_NOT_HTTPS=1; PSTM=1589783384; BIDUPSID=B7F548F09EEC3FB817FEE54D9E4FB734; BDSVRTM=10; BD_HOME=1; H_PS_PSSID=1445_31326_21081_31111_31593_31525_31464_31322_30823"
+    }).text
+    html = etree.HTML(t)
+    aherf = html.xpath('//h3[@class="c-title"]/a/@href')
+    # print(aherf)
+    newdb = '123'
+    for item in aherf:
+        if 'baijiahao.baidu.com' in item:
+            print(item)
+            s = requests.get(url=item, headers={
+                "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
+                "Cookie": "BAIDUID=B7F548F09EEC3FB817FEE54D9E4FB734:FG=1; BD_NOT_HTTPS=1; PSTM=1589783384; BIDUPSID=B7F548F09EEC3FB817FEE54D9E4FB734; BDSVRTM=10; BD_HOME=1; H_PS_PSSID=1445_31326_21081_31111_31593_31525_31464_31322_30823"
+            }).text
+            html = etree.HTML(s)
+            # print(html)
+            # # 获取元素
+            newdb = html.xpath(
+                '//*[@id="article"]/div[@class="article-content"]/text()')[0]
+            print(newdb)
+    return newdb
 
 # 数据存json文件
 
@@ -124,7 +151,7 @@ if __name__ == "__main__":
     # 保存位置自定
     init2db('C:/Users/Administrator/Desktop/BaiduAndSinaHotSearch2pyecharts')
     # 每分钟抓一次
-    while True:
-        time.sleep(60)
-        init2db('C:/Users/Administrator/Desktop/python study/baidu+sina+douy+hot')
-        pass
+    # while True:
+    #     time.sleep(60)
+    #     init2db('C:/Users/Administrator/Desktop/python study/baidu+sina+douy+hot')
+    #     pass
