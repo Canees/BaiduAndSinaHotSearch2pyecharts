@@ -114,7 +114,7 @@ def json2charts(all_list, file_save_path):
         # )),
         # 数据要传递过去
         tooltip_opts=opts.TooltipOpts(formatter=JsCode(
-            "function(x){return '平台：'+ x.seriesName+'<br/>'+'事件：'+x.name+'<br/>'+'阅读量：'+ parseInt(x.value/10000) + '万' }"
+            "function(x){return '平台：'+ x.seriesName+'<br/>'+'事件：'+x.name+'<br/>'+'搜索量：'+ parseInt(x.value/10000) + '万' }"
         ))
     )
     bar.render(file_save_path+'/index.html')
@@ -123,7 +123,8 @@ def json2charts(all_list, file_save_path):
 if __name__ == "__main__":
     # 保存位置自定
     init2db('C:/Users/Administrator/Desktop/BaiduAndSinaHotSearch2pyecharts')
-    # while True:
-    #     time.sleep(60)
-    #     init2db('C:/Users/Administrator/Desktop/python study/baidu+sina+douy+hot')
-    #     pass
+    # 每分钟抓一次
+    while True:
+        time.sleep(60)
+        init2db('C:/Users/Administrator/Desktop/python study/baidu+sina+douy+hot')
+        pass
