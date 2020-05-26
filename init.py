@@ -8,12 +8,23 @@ import time
 from pyecharts import options as opts
 from pyecharts.charts import Bar
 from pyecharts.commons.utils import JsCode
-# 新浪热搜数据
+# 配置ehcarts路径
+from pyecharts.globals import CurrentConfig
+CurrentConfig.ONLINE_HOST = "http://172.16.102.9:8087/echarts_lib/"
+
+
+def requestd(url):
+    # request:
+    t = requests.get(url=url, headers={
+        "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
+        "Cookie": "BAIDUID=B7F548F09EEC3FB817FEE54D9E4FB734:FG=1; BD_NOT_HTTPS=1; PSTM=1589783384; BIDUPSID=B7F548F09EEC3FB817FEE54D9E4FB734; BDSVRTM=10; BD_HOME=1; H_PS_PSSID=1445_31326_21081_31111_31593_31525_31464_31322_30823"
+    }).text
+    return t
 
 
 def sina2hot(url):
-    r = requests.get(url=url, headers={
-        "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36"}).text
+    # 新浪热搜数据:
+    r = requestd(url)
     html = etree.HTML(r)
     # 匹配需要的字段
     a_herfs = html.xpath('//table/tbody/tr/td[@class="td-02"]/a/@href')
@@ -32,14 +43,10 @@ def sina2hot(url):
         big_list.append(obj)
     return big_list
 
-# 百度热搜数据
-
 
 def baidu2hot(url):
-    b = requests.get(url=url, headers={
-        "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
-        "Cookie": "BAIDUID=B7F548F09EEC3FB817FEE54D9E4FB734:FG=1; BD_NOT_HTTPS=1; PSTM=1589783384; BIDUPSID=B7F548F09EEC3FB817FEE54D9E4FB734; BDSVRTM=10; BD_HOME=1; H_PS_PSSID=1445_31326_21081_31111_31593_31525_31464_31322_30823"
-    }).text
+    # 百度热搜数据:
+    b = requestd(url)
     html = etree.HTML(b)
     hotsearch = html.xpath('//textarea[@id="hotsearch_data"]/text()')
     big_list = []
@@ -53,50 +60,43 @@ def baidu2hot(url):
             obj['num'] = int(items['heat_score'])
             obj['type'] = '百度热搜'
             obj['strnum'] = str(int(obj['num']/10000))+'万'
-            obj['htmls'] = getnewdetails(host + items['pure_title'])
+            # obj['htmls'] = getnewdetails(host + items['pure_title'])
             big_list.append(obj)
     return big_list
 
 
-# 获取新闻详情数据
 def getnewdetails(url):
-    t = requests.get(url=url, headers={
-        "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
-        "Cookie": "BAIDUID=B7F548F09EEC3FB817FEE54D9E4FB734:FG=1; BD_NOT_HTTPS=1; PSTM=1589783384; BIDUPSID=B7F548F09EEC3FB817FEE54D9E4FB734; BDSVRTM=10; BD_HOME=1; H_PS_PSSID=1445_31326_21081_31111_31593_31525_31464_31322_30823"
-    }).text
+    # 获取新闻详情数据:
+    t = requestd(url)
     html = etree.HTML(t)
     aherf = html.xpath('//h3[@class="c-title"]/a/@href')
     # print(aherf)
     newdb = '123'
     for item in aherf:
         if 'baijiahao.baidu.com' in item:
+            s = requestd(item)
             print(item)
-            s = requests.get(url=item, headers={
-                "user-agent": "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36",
-                "Cookie": "BAIDUID=B7F548F09EEC3FB817FEE54D9E4FB734:FG=1; BD_NOT_HTTPS=1; PSTM=1589783384; BIDUPSID=B7F548F09EEC3FB817FEE54D9E4FB734; BDSVRTM=10; BD_HOME=1; H_PS_PSSID=1445_31326_21081_31111_31593_31525_31464_31322_30823"
-            }).text
             html = etree.HTML(s)
             # print(html)
             # # 获取元素
             newdb = html.xpath(
-                '//*[@id="article"]/div[@class="article-content"]/text()')[0]
+                '//div[@class="article-content"/text()]')
             print(newdb)
     return newdb
 
-# 数据存json文件
-
 
 def save2json(file_save_path, file_db_list):
+    # 数据存json文件:
     # 中文禁用ascii,采用UTF8
     if file_save_path:
         os.chdir(file_save_path)
     with open('test.json', 'w', encoding='utf-8') as F:
         json.dump(file_db_list, F, ensure_ascii=False)
     pass
-# 合并数据list
 
 
 def init2db(file_save_path):
+    # 合并数据list:
     sinaurl = 'https://s.weibo.com/top/summary?cate=realtimehot'
     baidurl = 'http://www.baidu.com/'
     # 合并list
@@ -119,10 +119,9 @@ def init2db(file_save_path):
     save2json(file_save_path, new_list_1)
     pass
 
-# 图形化
-
 
 def json2charts(all_list, file_save_path):
+    # 图形化:
     bar = Bar()
     # 重新处理echarts需要的数据
     for item in all_list:
@@ -149,7 +148,7 @@ def json2charts(all_list, file_save_path):
 
 if __name__ == "__main__":
     # 保存位置自定
-    init2db('C:/Users/Administrator/Desktop/BaiduAndSinaHotSearch2pyecharts')
+    init2db('C:/Users/Canner/Desktop/BaiduAndSinaHotSearch2pyecharts')
     # 每分钟抓一次
     # while True:
     #     time.sleep(60)
