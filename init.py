@@ -60,7 +60,7 @@ def baidu2hot(url):
             obj['num'] = int(items['heat_score'])
             obj['type'] = '百度热搜'
             obj['strnum'] = str(int(obj['num']/10000))+'万'
-            # obj['htmls'] = getnewdetails(host + items['pure_title'])
+            obj['htmls'] = getnewdetails(obj['url'])
             big_list.append(obj)
     return big_list
 
@@ -70,18 +70,16 @@ def getnewdetails(url):
     t = requestd(url)
     html = etree.HTML(t)
     aherf = html.xpath('//h3[@class="c-title"]/a/@href')
-    # print(aherf)
-    newdb = '123'
+    newdb = ''
     for item in aherf:
         if 'baijiahao.baidu.com' in item:
             s = requestd(item)
-            print(item)
-            html = etree.HTML(s)
-            # print(html)
-            # # 获取元素
-            newdb = html.xpath(
-                '//div[@class="article-content"/text()]')
-            print(newdb)
+            htmls = etree.HTML(s)
+            # # 获取元素=>转成html
+            result = htmls.xpath('//*[@class="article-content"]/p')
+            for i in result:
+                newdb += etree.tostring(i, encoding='utf-8').decode()
+            # print(newdb)
     return newdb
 
 
@@ -136,7 +134,7 @@ def json2charts(all_list, file_save_path):
     bar.set_series_opts(
         label_opts=opts.LabelOpts(is_show=False),
         # label_opts=opts.LabelOpts(formatter=JsCode(
-        #     "function(x){return parseInt(x.data/10000)+'万'}"
+        #     "function(x){return parseInt(x.value/10000)+'万'}"
         # )),
         # 数据要传递过去
         tooltip_opts=opts.TooltipOpts(formatter=JsCode(
@@ -150,7 +148,7 @@ if __name__ == "__main__":
     # 保存位置自定
     init2db('C:/Users/Canner/Desktop/BaiduAndSinaHotSearch2pyecharts')
     # 每分钟抓一次
-    # while True:
-    #     time.sleep(60)
-    #     init2db('C:/Users/Administrator/Desktop/python study/baidu+sina+douy+hot')
-    #     pass
+    while True:
+        time.sleep(300)
+        init2db('C:/Users/Canner/Desktop/BaiduAndSinaHotSearch2pyecharts')
+        pass
